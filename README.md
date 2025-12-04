@@ -1,4 +1,4 @@
-# Proyecto-3
+# **PROYECTO 3**
 
 # Daniel Manzanera, 202411443, d.manzanerat@uniandes.edu.co
 ⣿⣿⣿⣿⣿⣿⣿⣿⢱⣿⠋⣰⡟⡿⣁⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠁⢡⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡏⣶⡈⢷⡜⢿⣿⡇⢸⣿⣿⣿
