@@ -1,7 +1,7 @@
 package presentacion;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 
 public class FPrincipal extends JFrame{
-
+	
 }
