@@ -21,9 +21,9 @@ public class Oferta{
         if (vendedor == null || tiquetes == null || tiquetes.isEmpty())
             throw new IllegalArgumentException("Datos inválidos para crear oferta.");
 
-        for (Tiquete t	: tiquetes) {
-            if (!t.isTransferible() || t.isTransferido()) {
-                throw new IllegalArgumentException("No se puede incluir un tiquete no transferible o ya transferido.");
+        for (Tiquete t : tiquetes) {
+            if (!t.isTransferible() || t.isTransferido() || t.isImpreso()) { 
+                throw new IllegalArgumentException("No se puede incluir un tiquete no transferible, ya transferido, o ya impreso.");
             }
         }
 

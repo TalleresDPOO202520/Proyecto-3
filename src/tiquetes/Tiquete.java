@@ -3,11 +3,11 @@ package tiquetes;
 import eventos.Evento;
 import eventos.Localidad;
 
-
 public abstract class Tiquete {
     protected String idTiquete;
     protected boolean transferible = true;
     protected boolean transferido = false;
+    protected boolean impreso = false; // <-- NUEVO ATRIBUTO
     protected Evento evento;
     protected Localidad localidad;
 
@@ -25,11 +25,16 @@ public abstract class Tiquete {
     public Localidad getLocalidad() { return localidad; }
     public boolean isTransferido() { return transferido; }
     public boolean isTransferible() { return transferible; }
+    public boolean isImpreso() { return impreso; } 
 
     public void marcarTransferido() {
-        if (transferible) {
+        if (transferible && !impreso) { 
             this.transferido = true;
         }
+    }
+
+    public void marcarImpreso() { 
+        this.impreso = true;
     }
 }
 
