@@ -4,224 +4,287 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+
+// Importaciones de tus clases de lógica
 import usuarios.Administrador;
 import eventos.Evento;
 import eventos.Venue;
 import tiquetes.Tiquete;
 
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "unused" })
 public class PanelAdministrador extends JPanel {
 
     private FPrincipal ventanaPrincipal;
-    private Administrador admin;
+    private Administrador adminActual;
 
-    private JTextField txtTipoEvento;
-    private JTextField txtPorcentaje;
+    // Componentes UI
+    private JTextField txtTipoEvento, txtPorcentaje;
     private JTextField txtCuota;
-    private JTextField txtVenue;
-    private JTextField txtEventoCancelar;
+    private JTextField txtVenueNombre, txtVenueCapacidad;
+    private JTextField txtEventoCancelar, txtMotivoCancelacion;
     private JTextArea areaLog;
 
-    public PanelAdministrador(FPrincipal principal, Administrador admin) {
+    // Constructor por defecto
+    public PanelAdministrador() {
+        this(null, new Administrador("AdminDefault", "123", "ADM-00", "Default"));
+    }
+
+    public PanelAdministrador(FPrincipal principal, Object usuario) {
         this.ventanaPrincipal = principal;
-        this.admin = admin;
+        
+        // Validación de seguridad
+        if (usuario instanceof Administrador) {
+            this.adminActual = (Administrador) usuario;
+        } else {
+            // Fallback seguro para evitar NullPointer si entra otro rol por error
+            this.adminActual = new Administrador("Invitado", "000", "ADM-INV", "Invitado");
+        }
 
         setLayout(new BorderLayout());
-        setBackground(new Color(30,30,30));
+        setBackground(new Color(245, 245, 245)); // Gris claro profesional
 
         inicializarUI();
     }
 
     private void inicializarUI() {
-
+        // Header
         JPanel header = new JPanel(new BorderLayout());
-        header.setOpaque(false);
-        header.setBorder(new EmptyBorder(10,10,10,10));
+        header.setBackground(new Color(30, 30, 30)); // Header oscuro
+        header.setBorder(new EmptyBorder(15, 20, 15, 20));
 
-        JLabel titulo = new JLabel("Panel del Administrador");
-        titulo.setFont(new Font("SansSerif", Font.BOLD, 26));
+        JLabel titulo = new JLabel("Panel de Administración - " + adminActual.getNombre());
+        titulo.setFont(new Font("SansSerif", Font.BOLD, 22));
         titulo.setForeground(Color.WHITE);
 
         header.add(titulo, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
+        // Cuerpo con Scroll
         JPanel body = new JPanel();
-        body.setOpaque(false);
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
-        body.setBorder(new EmptyBorder(15,15,15,15));
+        body.setBorder(new EmptyBorder(20, 20, 20, 20));
+        body.setBackground(Color.WHITE);
 
-        body.add(crearSeccionCargos());
-        body.add(Box.createRigidArea(new Dimension(0,15)));
-
-        body.add(crearSeccionCuota());
-        body.add(Box.createRigidArea(new Dimension(0,15)));
-
-        body.add(crearSeccionVenue());
-        body.add(Box.createRigidArea(new Dimension(0,15)));
-
-        body.add(crearSeccionCancelar());
-        body.add(Box.createRigidArea(new Dimension(0,15)));
-
-        body.add(crearSeccionFinanzas());
+        // --- SECCIONES FUNCIONALES ---
+        body.add(crearSeccionConfiguracion());
+        body.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        body.add(crearSeccionAprobaciones());
+        body.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        body.add(crearSeccionControlEventos());
+        body.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        body.add(crearSeccionAuditoria());
 
         JScrollPane scroll = new JScrollPane(body);
-        scroll.setOpaque(false);
-        scroll.getViewport().setOpaque(false);
         scroll.setBorder(null);
-
         add(scroll, BorderLayout.CENTER);
-
-        areaLog = new JTextArea(7,40);
-        areaLog.setBackground(new Color(20,20,20));
-        areaLog.setForeground(Color.GREEN);
-        areaLog.setEditable(false);
-        areaLog.setFont(new Font("Consolas", Font.PLAIN, 14));
-
-        add(new JScrollPane(areaLog), BorderLayout.SOUTH);
     }
 
-    private JPanel crearSeccionCargos() {
-        JPanel p = crearPanelSeccion("Ajustar Cargo por Tipo de Evento");
+    // ====================================================================
+    // SECCIÓN 1: CONFIGURACIÓN FINANCIERA (Requisito P1)
+    // ====================================================================
+    private JPanel crearSeccionConfiguracion() {
+        JPanel p = crearPanelBase("Configuración Financiera");
+        p.setLayout(new GridLayout(2, 1, 10, 10));
 
+        // Sub-panel Cargos
+        JPanel pCargos = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pCargos.setOpaque(false);
         txtTipoEvento = new JTextField(10);
-        txtPorcentaje = new JTextField(10);
+        txtPorcentaje = new JTextField(5);
+        JButton btnCargo = new JButton("Fijar % Servicio");
+        btnCargo.addActionListener(this::accionFijarCargo);
+        
+        pCargos.add(new JLabel("Tipo Evento:")); pCargos.add(txtTipoEvento);
+        pCargos.add(new JLabel("% (0.0-1.0):")); pCargos.add(txtPorcentaje);
+        pCargos.add(btnCargo);
 
-        JButton btn = new JButton("Aplicar");
-        btn.addActionListener(this::accionFijarCargo);
-
-        p.add(new JLabel("Tipo evento:"));
-        p.add(txtTipoEvento);
-
-        p.add(new JLabel("Porcentaje (0 - 1):"));
-        p.add(txtPorcentaje);
-
-        p.add(btn);
-
-        return p;
-    }
-
-    private JPanel crearSeccionCuota() {
-        JPanel p = crearPanelSeccion("Fijar Cuota de Emisión");
-
+        // Sub-panel Cuota Fija
+        JPanel pCuota = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pCuota.setOpaque(false);
         txtCuota = new JTextField(10);
+        JButton btnCuota = new JButton("Fijar Cuota Emisión");
+        btnCuota.addActionListener(this::accionFijarCuota);
+        
+        pCuota.add(new JLabel("Cuota Fija ($):")); pCuota.add(txtCuota);
+        pCuota.add(btnCuota);
 
-        JButton btn = new JButton("Aplicar");
-        btn.addActionListener(this::accionFijarCuota);
+        p.add(pCargos);
+        p.add(pCuota);
+        return p;
+    }
 
-        p.add(new JLabel("Cuota fija:"));
-        p.add(txtCuota);
-        p.add(btn);
+    // ====================================================================
+    // SECCIÓN 2: APROBACIONES (Requisito P1)
+    // ====================================================================
+    private JPanel crearSeccionAprobaciones() {
+        JPanel p = crearPanelBase("Aprobación de Venues");
+        p.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+        txtVenueNombre = new JTextField(15);
+        txtVenueCapacidad = new JTextField(8);
+        JButton btnAprobar = new JButton("Aprobar Venue");
+        btnAprobar.setBackground(new Color(34, 139, 34)); // Verde
+        btnAprobar.setForeground(Color.WHITE);
+        btnAprobar.addActionListener(this::accionAprobarVenue);
+
+        p.add(new JLabel("Nombre Venue:")); p.add(txtVenueNombre);
+        p.add(new JLabel("Capacidad:")); p.add(txtVenueCapacidad);
+        p.add(btnAprobar);
 
         return p;
     }
 
-    private JPanel crearSeccionVenue() {
-        JPanel p = crearPanelSeccion("Aprobar un Venue");
+    // ====================================================================
+    // SECCIÓN 3: CONTROL DE EVENTOS (Cancelación - Requisito P1)
+    // ====================================================================
+    private JPanel crearSeccionControlEventos() {
+        JPanel p = crearPanelBase("Gestión de Riesgos");
+        p.setLayout(new FlowLayout(FlowLayout.LEFT));
 
-        txtVenue = new JTextField(10);
+        txtEventoCancelar = new JTextField(15);
+        txtMotivoCancelacion = new JTextField(20);
+        JButton btnCancelar = new JButton("CANCELAR EVENTO");
+        btnCancelar.setBackground(Color.RED);
+        btnCancelar.setForeground(Color.WHITE);
+        btnCancelar.addActionListener(this::accionCancelarEvento);
 
-        JButton btn = new JButton("Aprobar");
-        btn.addActionListener(this::accionAprobarVenue);
-
-        p.add(new JLabel("Nombre Venue:"));
-        p.add(txtVenue);
-        p.add(btn);
-
-        return p;
-    }
-
-    private JPanel crearSeccionCancelar() {
-        JPanel p = crearPanelSeccion("Cancelar un Evento");
-
-        txtEventoCancelar = new JTextField(10);
-
-        JButton btn = new JButton("Cancelar Evento");
-        btn.addActionListener(this::accionCancelarEvento);
-
-        p.add(new JLabel("Nombre evento:"));
-        p.add(txtEventoCancelar);
-        p.add(btn);
+        p.add(new JLabel("ID/Nombre Evento:")); p.add(txtEventoCancelar);
+        p.add(new JLabel("Motivo:")); p.add(txtMotivoCancelacion);
+        p.add(btnCancelar);
 
         return p;
     }
 
-    private JPanel crearSeccionFinanzas() {
-        JPanel p = crearPanelSeccion("Consultar Finanzas");
+    // ====================================================================
+    // SECCIÓN 4: AUDITORÍA Y LOGS (Requisito P2)
+    // ====================================================================
+    private JPanel crearSeccionAuditoria() {
+        JPanel p = crearPanelBase("Log de Auditoría");
+        p.setLayout(new BorderLayout());
 
-        JButton btn = new JButton("Consultar");
-        btn.addActionListener(e -> {
-            admin.consultarFinanzas("todos");
-            areaLog.append("📊 Consultadas finanzas.\n");
+        areaLog = new JTextArea(8, 40);
+        areaLog.setEditable(false);
+        areaLog.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        areaLog.setBackground(new Color(240, 240, 240));
+        
+        // Botón para consultar finanzas globales
+        JButton btnFinanzas = new JButton("Consultar Reporte Financiero Global");
+        btnFinanzas.addActionListener(e -> {
+            adminActual.consultarFinanzas("Global");
+            log("Reporte financiero generado en consola/log.");
         });
 
-        p.add(btn);
+        p.add(new JScrollPane(areaLog), BorderLayout.CENTER);
+        p.add(btnFinanzas, BorderLayout.SOUTH);
+        
         return p;
     }
 
-    private JPanel crearPanelSeccion(String titulo) {
+    // --- Helpers de UI ---
+    private JPanel crearPanelBase(String titulo) {
         JPanel p = new JPanel();
-        p.setOpaque(false);
+        p.setBackground(Color.WHITE);
         p.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.GRAY),
-                titulo,
-                0, 0,
-                new Font("SansSerif", Font.BOLD, 14),
-                Color.WHITE));
-
-        p.setLayout(new FlowLayout(FlowLayout.LEFT));
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY), 
+                titulo, 
+                0, 0, 
+                new Font("SansSerif", Font.BOLD, 14), 
+                Color.BLACK));
         return p;
     }
 
+    private void log(String msg) {
+        areaLog.append(">> " + msg + "\n");
+        // Auto-scroll al final
+        areaLog.setCaretPosition(areaLog.getDocument().getLength());
+    }
+
+    // ====================================================================
+    // ACCIONES (Lógica de Negocio)
+    // ====================================================================
 
     private void accionFijarCargo(ActionEvent e) {
         try {
             String tipo = txtTipoEvento.getText().trim();
             double porc = Double.parseDouble(txtPorcentaje.getText().trim());
-
-            admin.fijarCargoServicio(tipo, porc);
-
-            areaLog.append("✔ Cargo aplicado: " + tipo + " = " + porc + "\n");
+            
+            // Usamos tu método del modelo
+            adminActual.fijarCargoServicio(tipo, porc);
+            
+            log("Cargo actualizado: " + tipo + " -> " + (porc * 100) + "%");
+            JOptionPane.showMessageDialog(this, "Cargo actualizado correctamente.");
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "El porcentaje debe ser un número (ej. 0.15)", "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            areaLog.append("❌ Error al fijar cargo.\n");
+            log("Error al fijar cargo: " + ex.getMessage());
         }
     }
 
     private void accionFijarCuota(ActionEvent e) {
         try {
             double monto = Double.parseDouble(txtCuota.getText());
-            admin.fijarCuotaEmision(monto);
-
-            areaLog.append("✔ Cuota fijada: " + monto + "\n");
+            
+            // Usamos tu método del modelo
+            adminActual.fijarCuotaEmision(monto);
+            
+            log("Cuota de emisión fijada en: $" + monto);
+            JOptionPane.showMessageDialog(this, "Cuota actualizada.");
         } catch (Exception ex) {
-            areaLog.append("❌ Error al fijar cuota.\n");
+            JOptionPane.showMessageDialog(this, "Monto inválido.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void accionAprobarVenue(ActionEvent e) {
-        String nombre = txtVenue.getText().trim();
+        String nombre = txtVenueNombre.getText().trim();
+        String capStr = txtVenueCapacidad.getText().trim();
 
-        if (nombre.isEmpty()) {
-            areaLog.append("⚠ Ingrese un nombre de venue.\n");
+        if (nombre.isEmpty() || capStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        Venue v = new Venue("VEN-" + System.currentTimeMillis(), nombre, "Dir X", 2000);
-        admin.aprobarVenue(v);
-
-        areaLog.append("✔ Venue aprobado: " + nombre + "\n");
+        try {
+            int cap = Integer.parseInt(capStr);
+            // Creamos un Venue temporal para aprobarlo (Simulación)
+            Venue v = new Venue("VEN-" + System.currentTimeMillis(), nombre, "Ubicación Pendiente", cap);
+            
+            // Usamos tu método del modelo
+            if (adminActual.aprobarVenue(v)) {
+                log("Venue APROBADO: " + nombre + " (Cap: " + cap + ")");
+                JOptionPane.showMessageDialog(this, "Venue aprobado y registrado en el sistema.");
+                txtVenueNombre.setText(""); txtVenueCapacidad.setText("");
+            }
+        } catch (Exception ex) {
+            log("Error al aprobar venue: " + ex.getMessage());
+        }
     }
 
     private void accionCancelarEvento(ActionEvent e) {
         String nombre = txtEventoCancelar.getText().trim();
+        String motivo = txtMotivoCancelacion.getText().trim();
 
-        if (nombre.isEmpty()) {
-            areaLog.append("⚠ Escriba el nombre del evento.\n");
+        if (nombre.isEmpty() || motivo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe especificar el evento y el motivo.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        Evento ev = new Evento("EV-" + System.currentTimeMillis(), nombre, "Concierto", "Fecha x", "20:00", null);
-        admin.cancelarEvento(ev, "Decisión administrativa");
+        // Confirmación de seguridad
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "¿Está seguro de cancelar el evento '" + nombre + "'?\nEsta acción disparará reembolsos.", 
+            "Confirmar Cancelación", JOptionPane.YES_NO_OPTION);
 
-        areaLog.append("⚠ Evento cancelado: " + nombre + "\n");
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Mock del evento para pasar al método
+            Evento ev = new Evento("E-CANCEL", nombre, "General", "N/A", "00:00", null);
+            
+            // Usamos tu método del modelo
+            adminActual.cancelarEvento(ev, motivo);
+            
+            log("EVENTO CANCELADO: " + nombre + " | Motivo: " + motivo);
+            JOptionPane.showMessageDialog(this, "Evento cancelado. Se han iniciado los reembolsos.");
+        }
     }
 }

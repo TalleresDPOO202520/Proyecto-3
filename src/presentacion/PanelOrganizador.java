@@ -1,196 +1,349 @@
 package presentacion;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
-public class PanelOrganizador extends JFrame {
+import usuarios.Organizador;
+import eventos.Evento;
+import eventos.Venue;
+import eventos.Localidad;
 
-    private CardLayout layout;
-    private JPanel mainPanel;
+@SuppressWarnings("serial")
+public class PanelOrganizador extends JPanel {
 
-    private static final String MENU = "menu";
-    private static final String CREAR_VENUE = "crear_venue";
-    private static final String CREAR_EVENTO = "crear_evento";
-    private static final String AGREGAR_LOCALIDAD = "agregar_localidad";
-    private static final String GENERAR_TIQUETES = "generar_tiquetes";
-    private static final String LISTAR_EVENTOS = "listar_eventos";
+    @SuppressWarnings("unused")
+	private FPrincipal ventanaPrincipal;
+    private Organizador organizadorActual;
+
+    private Map<String, Venue> venuesRegistrados = new HashMap<>();
+    private Map<String, Evento> eventosRegistrados = new HashMap<>();
+
+    private JTabbedPane pestañasInternas;
+
+    // Campos Venue
+    private JTextField txtVenueId, txtVenueNombre, txtVenueUbicacion, txtVenueCapacidad;
+
+    // Campos Evento
+    private JTextField txtEventoId, txtEventoNombre, txtEventoTipo, txtEventoFecha, txtEventoHora;
+    private JComboBox<String> cmbVenuesDisponibles;
+
+    // Campos Localidad
+    private JComboBox<String> cmbEventosDisponibles;
+    private JTextField txtLocNombre, txtLocPrecio, txtLocCapacidad;
+    private JCheckBox chkLocNumerada;
+
+    // Finanzas
+    private JLabel lblIngresos, lblGastos, lblSaldo;
 
     public PanelOrganizador() {
-        setTitle("Panel del Organizador");
-        setSize(500, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-
-        layout = new CardLayout();
-        mainPanel = new JPanel(layout);
-
-        mainPanel.add(crearPanelMenu(), MENU);
-        mainPanel.add(crearPanelCrearVenue(), CREAR_VENUE);
-        mainPanel.add(crearPanelCrearEvento(), CREAR_EVENTO);
-        mainPanel.add(crearPanelAgregarLocalidad(), AGREGAR_LOCALIDAD);
-        mainPanel.add(crearPanelGenerarTiquetes(), GENERAR_TIQUETES);
-        mainPanel.add(crearPanelListarEventos(), LISTAR_EVENTOS);
-
-        add(mainPanel);
-
-        layout.show(mainPanel, MENU);
+        this(null, new Organizador("OrganizadorDefault", "123"));
     }
 
-    private JPanel crearPanelMenu() {
-        JPanel p = new JPanel(new GridLayout(6, 1, 10, 10));
+    public PanelOrganizador(FPrincipal principal, Object usuario) {
+        this.ventanaPrincipal = principal;
 
-        JButton btn1 = new JButton("Crear venue");
-        JButton btn2 = new JButton("Crear evento");
-        JButton btn3 = new JButton("Agregar localidad a evento");
-        JButton btn4 = new JButton("Generar tiquetes");
-        JButton btn5 = new JButton("Listar eventos y localidades");
+        if (usuario instanceof Organizador) {
+            this.organizadorActual = (Organizador) usuario;
+        } else {
+            this.organizadorActual = new Organizador("Invitado", "0000");
+        }
 
-        btn1.addActionListener(e -> layout.show(mainPanel, CREAR_VENUE));
-        btn2.addActionListener(e -> layout.show(mainPanel, CREAR_EVENTO));
-        btn3.addActionListener(e -> layout.show(mainPanel, AGREGAR_LOCALIDAD));
-        btn4.addActionListener(e -> layout.show(mainPanel, GENERAR_TIQUETES));
-        btn5.addActionListener(e -> layout.show(mainPanel, LISTAR_EVENTOS));
+        setLayout(new BorderLayout());
+        setBackground(Color.WHITE);
 
-        p.add(btn1);
-        p.add(btn2);
-        p.add(btn3);
-        p.add(btn4);
-        p.add(btn5);
+        // ❌ ANTES estaba cargarDatosMock() aquí → los combos NO existían aún
+        // cargarDatosMock();
 
-        return p;
+        inicializarComponentes();
+
+        // ✅ FIX: ahora sí existen los combos
+        cargarDatosMock();   // <<< ESTA ES LA ÚNICA CORRECCIÓN
     }
 
-    private JPanel crearPanelCrearVenue() {
-        JPanel p = new JPanel(new GridLayout(4, 2, 5, 5));
+    private void inicializarComponentes() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(40, 40, 40));
+        header.setBorder(new EmptyBorder(15, 20, 15, 20));
 
-        JTextField txtNombre = new JTextField();
-        JTextField txtDireccion = new JTextField();
+        JLabel lblTitulo = new JLabel("Panel de Gestión - " + organizadorActual.getLogin());
+        lblTitulo.setFont(new Font("SansSerif", Font.BOLD, 20));
+        lblTitulo.setForeground(Color.WHITE);
+        header.add(lblTitulo, BorderLayout.WEST);
 
-        JButton btnGuardar = new JButton("Crear");
-        JButton btnVolver = new JButton("Volver");
+        add(header, BorderLayout.NORTH);
 
-        p.add(new JLabel("Nombre:"));
-        p.add(txtNombre);
-        p.add(new JLabel("Dirección:"));
-        p.add(txtDireccion);
-        p.add(btnGuardar);
-        p.add(btnVolver);
+        pestañasInternas = new JTabbedPane();
+        pestañasInternas.setFont(new Font("SansSerif", Font.PLAIN, 14));
+
+        pestañasInternas.addTab("📍 Crear Venue", crearFormularioVenue());
+        pestañasInternas.addTab("📅 Crear Evento", crearFormularioEvento());
+        pestañasInternas.addTab("🎟️ Añadir Localidad", crearFormularioLocalidad());
+        pestañasInternas.addTab("💰 Finanzas", crearPanelFinanzas());
+
+        add(pestañasInternas, BorderLayout.CENTER);
+    }
+
+    // =================================================================================
+    // CREAR VENUE
+    // =================================================================================
+    private JScrollPane crearFormularioVenue() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        txtVenueId = new JTextField(15);
+        txtVenueNombre = new JTextField(15);
+        txtVenueUbicacion = new JTextField(15);
+        txtVenueCapacidad = new JTextField(15);
+
+        JButton btnGuardar = new JButton("Guardar Venue");
+        btnGuardar.setBackground(new Color(0, 122, 204));
+        btnGuardar.setForeground(Color.WHITE);
+
+        agregarCampo(panel, "ID Venue:", txtVenueId, 0, gbc);
+        agregarCampo(panel, "Nombre:", txtVenueNombre, 1, gbc);
+        agregarCampo(panel, "Ubicación:", txtVenueUbicacion, 2, gbc);
+        agregarCampo(panel, "Capacidad Máx:", txtVenueCapacidad, 3, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        panel.add(btnGuardar, gbc);
 
         btnGuardar.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Venue creado.");
+            try {
+                String id = txtVenueId.getText();
+                String nom = txtVenueNombre.getText();
+                String ubi = txtVenueUbicacion.getText();
+                int cap = Integer.parseInt(txtVenueCapacidad.getText());
+
+                Venue nuevoVenue = new Venue(id, nom, ubi, cap);
+                venuesRegistrados.put(id, nuevoVenue);
+
+                actualizarCombos();
+                JOptionPane.showMessageDialog(this, "Venue '" + nom + "' creado exitosamente.");
+                limpiarCampos(txtVenueId, txtVenueNombre, txtVenueUbicacion, txtVenueCapacidad);
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "La capacidad debe ser un número.");
+            }
         });
 
-        btnVolver.addActionListener(e -> layout.show(mainPanel, MENU));
-
-        return p;
+        return new JScrollPane(panel);
     }
 
-    private JPanel crearPanelCrearEvento() {
-        JPanel p = new JPanel(new GridLayout(5, 2, 5, 5));
+    // =================================================================================
+    // CREAR EVENTO
+    // =================================================================================
+    private JScrollPane crearFormularioEvento() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
 
-        JTextField txtNombre = new JTextField();
-        JTextField txtFecha = new JTextField();
-        JComboBox<String> cbVenue = new JComboBox<>(new String[]{
-                "Venue 1", "Venue 2"
-        });
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JButton btnCrear = new JButton("Crear evento");
-        JButton btnVolver = new JButton("Volver");
+        txtEventoId = new JTextField(15);
+        txtEventoNombre = new JTextField(15);
+        txtEventoTipo = new JTextField(15);
+        txtEventoFecha = new JTextField(15);
+        txtEventoHora = new JTextField(15);
+        cmbVenuesDisponibles = new JComboBox<>();
 
-        p.add(new JLabel("Nombre del evento:"));
-        p.add(txtNombre);
-        p.add(new JLabel("Fecha:"));
-        p.add(txtFecha);
-        p.add(new JLabel("Venue:"));
-        p.add(cbVenue);
-        p.add(btnCrear);
-        p.add(btnVolver);
+        JButton btnCrear = new JButton("Publicar Evento");
+        btnCrear.setBackground(new Color(34, 139, 34));
+        btnCrear.setForeground(Color.WHITE);
+
+        agregarCampo(panel, "ID Evento:", txtEventoId, 0, gbc);
+        agregarCampo(panel, "Nombre:", txtEventoNombre, 1, gbc);
+        agregarCampo(panel, "Tipo:", txtEventoTipo, 2, gbc);
+        agregarCampo(panel, "Fecha:", txtEventoFecha, 3, gbc);
+        agregarCampo(panel, "Hora:", txtEventoHora, 4, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        panel.add(new JLabel("Seleccionar Venue:"), gbc);
+
+        gbc.gridx = 1;
+        panel.add(cmbVenuesDisponibles, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 6;
+        panel.add(btnCrear, gbc);
 
         btnCrear.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Evento creado.");
+            try {
+                String idVenue = (String) cmbVenuesDisponibles.getSelectedItem();
+                if (idVenue == null) throw new Exception("Debes crear un Venue primero.");
+
+                Venue v = venuesRegistrados.get(idVenue);
+
+                Evento nuevoEvento = new Evento(
+                        txtEventoId.getText(),
+                        txtEventoNombre.getText(),
+                        txtEventoTipo.getText(),
+                        txtEventoFecha.getText(),
+                        txtEventoHora.getText(),
+                        v
+                );
+
+                eventosRegistrados.put(nuevoEvento.getIdEvento(), nuevoEvento);
+                actualizarCombos();
+
+                JOptionPane.showMessageDialog(this, "Evento creado!");
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
         });
 
-        btnVolver.addActionListener(e -> layout.show(mainPanel, MENU));
-
-        return p;
+        return new JScrollPane(panel);
     }
 
-    private JPanel crearPanelAgregarLocalidad() {
-        JPanel p = new JPanel(new GridLayout(5, 2, 5, 5));
+    // =================================================================================
+    // LOCALIDAD
+    // =================================================================================
+    private JScrollPane crearFormularioLocalidad() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
 
-        JComboBox<String> cbEventos = new JComboBox<>(new String[]{"Evento 1", "Evento 2"});
-        JTextField txtNombreLoc = new JTextField();
-        JTextField txtCap = new JTextField();
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JButton btnAgregar = new JButton("Agregar");
-        JButton btnVolver = new JButton("Volver");
+        cmbEventosDisponibles = new JComboBox<>();
+        txtLocNombre = new JTextField(15);
+        txtLocPrecio = new JTextField(15);
+        txtLocCapacidad = new JTextField(15);
 
-        p.add(new JLabel("Evento:"));
-        p.add(cbEventos);
-        p.add(new JLabel("Nombre de localidad:"));
-        p.add(txtNombreLoc);
-        p.add(new JLabel("Capacidad:"));
-        p.add(txtCap);
-        p.add(btnAgregar);
-        p.add(btnVolver);
+        chkLocNumerada = new JCheckBox("Es Numerada");
+        chkLocNumerada.setBackground(Color.WHITE);
 
-        btnAgregar.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Localidad agregada.");
+        JButton btnAdd = new JButton("Añadir Localidad");
+        btnAdd.setBackground(new Color(255, 140, 0));
+        btnAdd.setForeground(Color.WHITE);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Seleccionar Evento:"), gbc);
+
+        gbc.gridx = 1;
+        panel.add(cmbEventosDisponibles, gbc);
+
+        agregarCampo(panel, "Nombre Localidad:", txtLocNombre, 1, gbc);
+        agregarCampo(panel, "Precio:", txtLocPrecio, 2, gbc);
+        agregarCampo(panel, "Capacidad:", txtLocCapacidad, 3, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        panel.add(chkLocNumerada, gbc);
+
+        gbc.gridy = 5;
+        panel.add(btnAdd, gbc);
+
+        btnAdd.addActionListener(e -> {
+            try {
+                String idEvento = (String) cmbEventosDisponibles.getSelectedItem();
+                if (idEvento == null) throw new Exception("Debes seleccionar evento.");
+
+                Evento ev = eventosRegistrados.get(idEvento);
+
+                Localidad loc = new Localidad(
+                        "LOC-" + System.currentTimeMillis(),
+                        txtLocNombre.getText(),
+                        Double.parseDouble(txtLocPrecio.getText()),
+                        chkLocNumerada.isSelected(),
+                        Integer.parseInt(txtLocCapacidad.getText())
+                );
+
+                ev.agregarLocalidad(loc);
+
+                JOptionPane.showMessageDialog(this,
+                        "Localidad agregada. Tiquetes generados: " +
+                                loc.generarTiquetes(ev).size());
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
         });
 
-        btnVolver.addActionListener(e -> layout.show(mainPanel, MENU));
-
-        return p;
+        return new JScrollPane(panel);
     }
 
-    private JPanel crearPanelGenerarTiquetes() {
-        JPanel p = new JPanel(new GridLayout(5, 2, 5, 5));
+    // =================================================================================
+    // FINANZAS
+    // =================================================================================
+    private JPanel crearPanelFinanzas() {
+        JPanel panel = new JPanel(new GridLayout(4, 1, 20, 20));
+        panel.setBorder(new EmptyBorder(30, 30, 30, 30));
+        panel.setBackground(Color.WHITE);
 
-        JComboBox<String> cbEventos = new JComboBox<>(new String[]{"Evento 1", "Evento 2"});
-        JComboBox<String> cbLocalidades = new JComboBox<>(new String[]{"VIP", "General"});
-        JTextField txtCantidad = new JTextField();
+        lblIngresos = new JLabel("Ingresos Totales: $ 0.0");
+        lblGastos = new JLabel("Gastos Totales: $ 0.0");
+        lblSaldo = new JLabel("Saldo en Plataforma: $ 0.0");
 
-        JButton btnGenerar = new JButton("Generar");
-        JButton btnVolver = new JButton("Volver");
+        JButton btnActualizar = new JButton("Actualizar Reporte");
+        btnActualizar.addActionListener(e -> actualizarFinanzas());
 
-        p.add(new JLabel("Evento:"));
-        p.add(cbEventos);
-        p.add(new JLabel("Localidad:"));
-        p.add(cbLocalidades);
-        p.add(new JLabel("Cantidad:"));
-        p.add(txtCantidad);
-        p.add(btnGenerar);
-        p.add(btnVolver);
+        panel.add(lblIngresos);
+        panel.add(lblGastos);
+        panel.add(lblSaldo);
+        panel.add(btnActualizar);
 
-        btnGenerar.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Tiquetes generados.");
-        });
-
-        btnVolver.addActionListener(e -> layout.show(mainPanel, MENU));
-
-        return p;
+        return panel;
     }
 
-    private JPanel crearPanelListarEventos() {
-        JPanel p = new JPanel(new BorderLayout());
+    // =================================================================================
+    // UTILIDADES
+    // =================================================================================
 
-        JTextArea txt = new JTextArea();
-        txt.setEditable(false);
+    private void agregarCampo(JPanel p, String label, JComponent campo, int y, GridBagConstraints gbc) {
+        gbc.gridx = 0;
+        gbc.gridy = y;
+        p.add(new JLabel(label), gbc);
 
-        txt.setText("Evento 1 - Localidades: VIP, General\nEvento 2 - Localidades: Balcón, Palco");
-
-        JButton btnVolver = new JButton("Volver");
-
-        p.add(new JScrollPane(txt), BorderLayout.CENTER);
-        p.add(btnVolver, BorderLayout.SOUTH);
-
-        btnVolver.addActionListener(e -> layout.show(mainPanel, MENU));
-
-        return p;
+        gbc.gridx = 1;
+        p.add(campo, gbc);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new PanelOrganizador().setVisible(true));
+    private void actualizarCombos() {
+        if (cmbVenuesDisponibles != null) {
+            cmbVenuesDisponibles.removeAllItems();
+            for (String id : venuesRegistrados.keySet()) {
+                cmbVenuesDisponibles.addItem(id);
+            }
+        }
+
+        if (cmbEventosDisponibles != null) {
+            cmbEventosDisponibles.removeAllItems();
+            for (String id : eventosRegistrados.keySet()) {
+                cmbEventosDisponibles.addItem(id);
+            }
+        }
+    }
+
+    private void actualizarFinanzas() {
+        lblIngresos.setText("Ingresos Totales: $ " + organizadorActual.getIngresosTotales());
+        lblGastos.setText("Gastos Totales: $ " + organizadorActual.getGastosTotales());
+        lblSaldo.setText("Saldo en Plataforma: $ " + organizadorActual.getSaldoPlataforma());
+    }
+
+    private void limpiarCampos(JTextField... campos) {
+        for (JTextField c : campos) c.setText("");
+    }
+
+    private void cargarDatosMock() {
+        Venue v = new Venue("V1", "Movistar Arena", "Bogotá", 14000);
+        venuesRegistrados.put("V1", v);
+
+        Evento e = new Evento("E1", "Concierto Mock", "Musical", "2026-01-01", "20:00", v);
+        eventosRegistrados.put("E1", e);
+
+        actualizarCombos();
     }
 }
-

@@ -10,7 +10,7 @@ import tiquetes.Tiquete;
 import utils.Qr; 
 // Importaciones de Evento, Localidad, etc., si son necesarias para los mocks de tu proyecto
 
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "unused" })
 public class PanelMisBoletas extends JPanel {
 
     private FPrincipal ventanaPrincipal;

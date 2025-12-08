@@ -14,6 +14,7 @@ import javax.sound.sampled.*;
 import usuarios.Administrador;
 import tiquetes.Tiquete;
 
+@SuppressWarnings("serial")
 public class FPrincipal extends JFrame {
 
     private JTabbedPane tabbedPane;
@@ -79,8 +80,15 @@ public class FPrincipal extends JFrame {
     public void registrarCompra(Tiquete t) {
         if (t != null) {
             misBoletasCompradas.add(t);
-        }
+        }       
+       
     }
+ // En src/presentacion/FPrincipal.java
+
+ // Getter para que los paneles sepan quién está logueado
+ public Object getUsuarioActivo() {
+     return this.usuarioActivo;
+ }
 
     /** Abrir una pestaña con un ticket */
     public void abrirPestanaTiquete(String tituloEvento, String rutaImagen) {
@@ -139,7 +147,7 @@ public class FPrincipal extends JFrame {
         tabbedPane.addTab("🎫 Mis Boletas", new PanelMisBoletas(this, misBoletasCompradas));
 
         // Marketplace
-        tabbedPane.addTab("🛒 Market", new PanelMarketplace());
+        tabbedPane.addTab("🛒 Market", new PanelMarketplace(this));
 
         // Organizador
         tabbedPane.addTab("⚙️ Opciones", new PanelOrganizador());
