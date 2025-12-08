@@ -24,15 +24,12 @@ public class Main {
                 return;
             }
 
-            // ===============================================
-            // 1. Obtener administrador global para FPrincipal
-            // ===============================================
             Administrador adminGlobal;
 
             if (usuarioActivo instanceof Administrador) {
                 adminGlobal = (Administrador) usuarioActivo;
             } else {
-                // Administrador por defecto si quien entra NO es admin
+
                 adminGlobal = new Administrador(
                         "adminGlobal",
                         "123",
@@ -41,21 +38,15 @@ public class Main {
                 );
             }
 
-            // ===============================================
-            // 2. Crear la ventana principal con admin válido
-            // ===============================================
             FPrincipal principal = new FPrincipal(adminGlobal);
 
-            // Registrar el usuario activo (cliente/organizador/admin)
             principal.setUsuarioActivo(usuarioActivo);
 
             principal.setVisible(true);
         });
     }
 
-    /**
-     * Muestra el diálogo de login y retorna un objeto Cliente/Organizador/Administrador.
-     */
+    
     private static Object mostrarDialogoLogin() {
 
         String[] roles = {"Cliente", "Organizador", "Administrador"};

@@ -54,13 +54,10 @@ public class PanelOrganizador extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // ❌ ANTES estaba cargarDatosMock() aquí → los combos NO existían aún
-        // cargarDatosMock();
-
+   
         inicializarComponentes();
 
-        // ✅ FIX: ahora sí existen los combos
-        cargarDatosMock();   // <<< ESTA ES LA ÚNICA CORRECCIÓN
+        cargarDatosMock();   
     }
 
     private void inicializarComponentes() {
@@ -86,9 +83,7 @@ public class PanelOrganizador extends JPanel {
         add(pestañasInternas, BorderLayout.CENTER);
     }
 
-    // =================================================================================
-    // CREAR VENUE
-    // =================================================================================
+ 
     private JScrollPane crearFormularioVenue() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
@@ -137,9 +132,6 @@ public class PanelOrganizador extends JPanel {
         return new JScrollPane(panel);
     }
 
-    // =================================================================================
-    // CREAR EVENTO
-    // =================================================================================
     private JScrollPane crearFormularioEvento() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
@@ -205,9 +197,7 @@ public class PanelOrganizador extends JPanel {
         return new JScrollPane(panel);
     }
 
-    // =================================================================================
-    // LOCALIDAD
-    // =================================================================================
+
     private JScrollPane crearFormularioLocalidad() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
@@ -275,9 +265,7 @@ public class PanelOrganizador extends JPanel {
         return new JScrollPane(panel);
     }
 
-    // =================================================================================
-    // FINANZAS
-    // =================================================================================
+ 
     private JPanel crearPanelFinanzas() {
         JPanel panel = new JPanel(new GridLayout(4, 1, 20, 20));
         panel.setBorder(new EmptyBorder(30, 30, 30, 30));
@@ -297,10 +285,6 @@ public class PanelOrganizador extends JPanel {
 
         return panel;
     }
-
-    // =================================================================================
-    // UTILIDADES
-    // =================================================================================
 
     private void agregarCampo(JPanel p, String label, JComponent campo, int y, GridBagConstraints gbc) {
         gbc.gridx = 0;

@@ -5,7 +5,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
-// Importaciones de tus clases de lógica
 import usuarios.Administrador;
 import eventos.Evento;
 import eventos.Venue;
@@ -17,14 +16,12 @@ public class PanelAdministrador extends JPanel {
     private FPrincipal ventanaPrincipal;
     private Administrador adminActual;
 
-    // Componentes UI
     private JTextField txtTipoEvento, txtPorcentaje;
     private JTextField txtCuota;
     private JTextField txtVenueNombre, txtVenueCapacidad;
     private JTextField txtEventoCancelar, txtMotivoCancelacion;
     private JTextArea areaLog;
 
-    // Constructor por defecto
     public PanelAdministrador() {
         this(null, new Administrador("AdminDefault", "123", "ADM-00", "Default"));
     }
@@ -32,16 +29,15 @@ public class PanelAdministrador extends JPanel {
     public PanelAdministrador(FPrincipal principal, Object usuario) {
         this.ventanaPrincipal = principal;
         
-        // Validación de seguridad
         if (usuario instanceof Administrador) {
             this.adminActual = (Administrador) usuario;
         } else {
-            // Fallback seguro para evitar NullPointer si entra otro rol por error
+   
             this.adminActual = new Administrador("Invitado", "000", "ADM-INV", "Invitado");
         }
 
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 245)); // Gris claro profesional
+        setBackground(new Color(245, 245, 245)); 
 
         inicializarUI();
     }
@@ -49,7 +45,7 @@ public class PanelAdministrador extends JPanel {
     private void inicializarUI() {
         // Header
         JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(30, 30, 30)); // Header oscuro
+        header.setBackground(new Color(30, 30, 30)); 
         header.setBorder(new EmptyBorder(15, 20, 15, 20));
 
         JLabel titulo = new JLabel("Panel de Administración - " + adminActual.getNombre());
@@ -59,13 +55,11 @@ public class PanelAdministrador extends JPanel {
         header.add(titulo, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
-        // Cuerpo con Scroll
         JPanel body = new JPanel();
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBorder(new EmptyBorder(20, 20, 20, 20));
         body.setBackground(Color.WHITE);
 
-        // --- SECCIONES FUNCIONALES ---
         body.add(crearSeccionConfiguracion());
         body.add(Box.createRigidArea(new Dimension(0, 20)));
         
@@ -82,14 +76,11 @@ public class PanelAdministrador extends JPanel {
         add(scroll, BorderLayout.CENTER);
     }
 
-    // ====================================================================
-    // SECCIÓN 1: CONFIGURACIÓN FINANCIERA (Requisito P1)
-    // ====================================================================
+ 
     private JPanel crearSeccionConfiguracion() {
         JPanel p = crearPanelBase("Configuración Financiera");
         p.setLayout(new GridLayout(2, 1, 10, 10));
 
-        // Sub-panel Cargos
         JPanel pCargos = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pCargos.setOpaque(false);
         txtTipoEvento = new JTextField(10);
@@ -101,7 +92,6 @@ public class PanelAdministrador extends JPanel {
         pCargos.add(new JLabel("% (0.0-1.0):")); pCargos.add(txtPorcentaje);
         pCargos.add(btnCargo);
 
-        // Sub-panel Cuota Fija
         JPanel pCuota = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pCuota.setOpaque(false);
         txtCuota = new JTextField(10);
@@ -116,9 +106,7 @@ public class PanelAdministrador extends JPanel {
         return p;
     }
 
-    // ====================================================================
-    // SECCIÓN 2: APROBACIONES (Requisito P1)
-    // ====================================================================
+   
     private JPanel crearSeccionAprobaciones() {
         JPanel p = crearPanelBase("Aprobación de Venues");
         p.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -137,9 +125,7 @@ public class PanelAdministrador extends JPanel {
         return p;
     }
 
-    // ====================================================================
-    // SECCIÓN 3: CONTROL DE EVENTOS (Cancelación - Requisito P1)
-    // ====================================================================
+  
     private JPanel crearSeccionControlEventos() {
         JPanel p = crearPanelBase("Gestión de Riesgos");
         p.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -158,9 +144,7 @@ public class PanelAdministrador extends JPanel {
         return p;
     }
 
-    // ====================================================================
-    // SECCIÓN 4: AUDITORÍA Y LOGS (Requisito P2)
-    // ====================================================================
+    
     private JPanel crearSeccionAuditoria() {
         JPanel p = crearPanelBase("Log de Auditoría");
         p.setLayout(new BorderLayout());
@@ -183,7 +167,7 @@ public class PanelAdministrador extends JPanel {
         return p;
     }
 
-    // --- Helpers de UI ---
+   
     private JPanel crearPanelBase(String titulo) {
         JPanel p = new JPanel();
         p.setBackground(Color.WHITE);
@@ -198,20 +182,18 @@ public class PanelAdministrador extends JPanel {
 
     private void log(String msg) {
         areaLog.append(">> " + msg + "\n");
-        // Auto-scroll al final
+     
         areaLog.setCaretPosition(areaLog.getDocument().getLength());
     }
 
-    // ====================================================================
-    // ACCIONES (Lógica de Negocio)
-    // ====================================================================
+  
 
     private void accionFijarCargo(ActionEvent e) {
         try {
             String tipo = txtTipoEvento.getText().trim();
             double porc = Double.parseDouble(txtPorcentaje.getText().trim());
             
-            // Usamos tu método del modelo
+            
             adminActual.fijarCargoServicio(tipo, porc);
             
             log("Cargo actualizado: " + tipo + " -> " + (porc * 100) + "%");
@@ -227,7 +209,7 @@ public class PanelAdministrador extends JPanel {
         try {
             double monto = Double.parseDouble(txtCuota.getText());
             
-            // Usamos tu método del modelo
+
             adminActual.fijarCuotaEmision(monto);
             
             log("Cuota de emisión fijada en: $" + monto);
@@ -248,10 +230,10 @@ public class PanelAdministrador extends JPanel {
 
         try {
             int cap = Integer.parseInt(capStr);
-            // Creamos un Venue temporal para aprobarlo (Simulación)
+            
             Venue v = new Venue("VEN-" + System.currentTimeMillis(), nombre, "Ubicación Pendiente", cap);
             
-            // Usamos tu método del modelo
+
             if (adminActual.aprobarVenue(v)) {
                 log("Venue APROBADO: " + nombre + " (Cap: " + cap + ")");
                 JOptionPane.showMessageDialog(this, "Venue aprobado y registrado en el sistema.");
@@ -271,16 +253,15 @@ public class PanelAdministrador extends JPanel {
             return;
         }
 
-        // Confirmación de seguridad
+
         int confirm = JOptionPane.showConfirmDialog(this, 
             "¿Está seguro de cancelar el evento '" + nombre + "'?\nEsta acción disparará reembolsos.", 
             "Confirmar Cancelación", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            // Mock del evento para pasar al método
+ 
             Evento ev = new Evento("E-CANCEL", nombre, "General", "N/A", "00:00", null);
-            
-            // Usamos tu método del modelo
+  
             adminActual.cancelarEvento(ev, motivo);
             
             log("EVENTO CANCELADO: " + nombre + " | Motivo: " + motivo);

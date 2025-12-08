@@ -45,7 +45,6 @@ public class PanelMisBoletas extends JPanel {
         actualizarLista();
     }
 
-    /** 🔥 LO NECESARIO PARA QUE FPrincipal PUEDA REFRESCAR */
     public void actualizarLista() {
         panelLista.removeAll();
 
@@ -83,11 +82,9 @@ public class PanelMisBoletas extends JPanel {
         );
         tarjeta.add(lblInfo, BorderLayout.CENTER);
 
-        // 📌 PANEL PARA LOS BOTONES
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         panelBotones.setBackground(Color.WHITE);
 
-        // 📌 Botón QR
         JButton btnQR = new JButton(t.isImpreso() ? "Ya Impreso" : "Ver QR");
 
         if (!t.isImpreso()) {
@@ -105,15 +102,12 @@ public class PanelMisBoletas extends JPanel {
             btnQR.setBackground(Color.GRAY);
         }
 
-        // 📌 Botón Vender
         JButton btnVender = new JButton("Vender");
         btnVender.addActionListener(e -> ventanaPrincipal.enviarBoletaAlMarket(t));
 
-        // 📌 Se agregan los botones al panel
         panelBotones.add(btnQR);
         panelBotones.add(btnVender);
 
-        // 📌 Se agrega el panel de botones a la tarjeta
         tarjeta.add(panelBotones, BorderLayout.EAST);
 
         return tarjeta;

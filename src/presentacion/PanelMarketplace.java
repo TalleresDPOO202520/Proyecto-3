@@ -33,7 +33,7 @@ public class PanelMarketplace extends JPanel {
         inicializarUI();
     }
     public void agregarBoletaReventa(Tiquete t) {
-        // Crear oferta automática simple de 1 boleta
+
         try {
             String idOferta = "OF-" + System.currentTimeMillis();
             Cliente vendedor = (Cliente) ventanaPrincipal.getUsuarioActivo();
@@ -147,9 +147,6 @@ public class PanelMarketplace extends JPanel {
         return tarjeta;
     }
 
-    // ============================================================
-    // ================ ACCIÓN COMPRAR (CORREGIDA) =================
-    // ============================================================
     private void accionComprar(Oferta oferta) {
         Object usuario = ventanaPrincipal.getUsuarioActivo();
 
@@ -216,9 +213,6 @@ public class PanelMarketplace extends JPanel {
         }
     }
 
-    // ============================================================
-    // DATOS DE PRUEBA
-    // ============================================================
     private void cargarDatosPrueba() {
         try {
             Cliente vendedorMock = new Cliente("Juan mecanico", "123");
