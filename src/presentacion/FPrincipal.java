@@ -2,6 +2,9 @@ package presentacion;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+
+import marketplace.Marketplace;
+
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -23,6 +26,10 @@ public class FPrincipal extends JFrame {
     private List<Tiquete> misBoletasCompradas;
 
     private Administrador adminGlobal;
+    
+    private Marketplace marketplaceGlobal = new Marketplace();
+
+    
 
     public FPrincipal(Administrador admin) {
         this.adminGlobal = admin;  
@@ -55,6 +62,17 @@ public class FPrincipal extends JFrame {
     public Administrador getAdministrador() {
         return adminGlobal;
     }
+    
+    public Marketplace getMarketplace() {
+        return marketplaceGlobal;
+    }
+    
+    public void actualizarMisBoletas() {
+        PanelMisBoletas mis = (PanelMisBoletas) tabbedPane.getComponentAt(1);
+        mis.actualizarLista();
+    }
+
+
 
 
     public void setUsuarioActivo(Object usuario) {

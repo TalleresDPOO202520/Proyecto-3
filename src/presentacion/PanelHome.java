@@ -143,7 +143,7 @@ public class PanelHome extends JPanel {
 
         JButton btnCerrar = new JButton("Cerrar");
         btnCerrar.setBackground(Color.RED);
-        btnCerrar.setForeground(Color.WHITE);
+        btnCerrar.setForeground(Color.black);
         btnCerrar.addActionListener(e -> ventanaPrincipal.cerrarPestana(p)); // Llama al padre para cerrarse
         
         JPanel pBtn = new JPanel(); pBtn.setBackground(new Color(30,30,30));

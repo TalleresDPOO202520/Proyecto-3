@@ -114,8 +114,8 @@ public class PanelAdministrador extends JPanel {
         txtVenueNombre = new JTextField(15);
         txtVenueCapacidad = new JTextField(8);
         JButton btnAprobar = new JButton("Aprobar Venue");
-        btnAprobar.setBackground(new Color(34, 139, 34)); // Verde
-        btnAprobar.setForeground(Color.WHITE);
+        btnAprobar.setBackground(new Color(34, 139, 34)); 
+        btnAprobar.setForeground(Color.black);
         btnAprobar.addActionListener(this::accionAprobarVenue);
 
         p.add(new JLabel("Nombre Venue:")); p.add(txtVenueNombre);
@@ -134,7 +134,7 @@ public class PanelAdministrador extends JPanel {
         txtMotivoCancelacion = new JTextField(20);
         JButton btnCancelar = new JButton("CANCELAR EVENTO");
         btnCancelar.setBackground(Color.RED);
-        btnCancelar.setForeground(Color.WHITE);
+        btnCancelar.setForeground(Color.black);
         btnCancelar.addActionListener(this::accionCancelarEvento);
 
         p.add(new JLabel("ID/Nombre Evento:")); p.add(txtEventoCancelar);
@@ -154,7 +154,7 @@ public class PanelAdministrador extends JPanel {
         areaLog.setFont(new Font("Monospaced", Font.PLAIN, 12));
         areaLog.setBackground(new Color(240, 240, 240));
         
-        // Botón para consultar finanzas globales
+     
         JButton btnFinanzas = new JButton("Consultar Reporte Financiero Global");
         btnFinanzas.addActionListener(e -> {
             adminActual.consultarFinanzas("Global");

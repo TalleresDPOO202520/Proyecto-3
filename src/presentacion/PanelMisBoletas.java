@@ -20,7 +20,7 @@ public class PanelMisBoletas extends JPanel {
         this.listaBoletas = boletas;
 
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(Color.pink);
 
         inicializarUI();
     }

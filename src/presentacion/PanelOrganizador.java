@@ -52,7 +52,7 @@ public class PanelOrganizador extends JPanel {
         }
 
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(Color.magenta);
 
    
         inicializarComponentes();
@@ -99,7 +99,7 @@ public class PanelOrganizador extends JPanel {
 
         JButton btnGuardar = new JButton("Guardar Venue");
         btnGuardar.setBackground(new Color(0, 122, 204));
-        btnGuardar.setForeground(Color.WHITE);
+        btnGuardar.setForeground(Color.black);
 
         agregarCampo(panel, "ID Venue:", txtVenueId, 0, gbc);
         agregarCampo(panel, "Nombre:", txtVenueNombre, 1, gbc);
@@ -216,7 +216,7 @@ public class PanelOrganizador extends JPanel {
 
         JButton btnAdd = new JButton("Añadir Localidad");
         btnAdd.setBackground(new Color(255, 140, 0));
-        btnAdd.setForeground(Color.WHITE);
+        btnAdd.setForeground(Color.black);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -267,21 +267,46 @@ public class PanelOrganizador extends JPanel {
 
  
     private JPanel crearPanelFinanzas() {
-        JPanel panel = new JPanel(new GridLayout(4, 1, 20, 20));
+        
+        JPanel panel = new JPanel(new BorderLayout(20, 20));
         panel.setBorder(new EmptyBorder(30, 30, 30, 30));
         panel.setBackground(Color.WHITE);
+
+        
+        JPanel panelInfo = new JPanel(new GridLayout(3, 1, 10, 10));
+        panelInfo.setOpaque(false);
 
         lblIngresos = new JLabel("Ingresos Totales: $ 0.0");
         lblGastos = new JLabel("Gastos Totales: $ 0.0");
         lblSaldo = new JLabel("Saldo en Plataforma: $ 0.0");
+        
+        
+        lblIngresos.setForeground(new Color(0, 128, 0)); // Verde
+        lblIngresos.setFont(new Font("SansSerif", Font.BOLD, 16));
+        lblGastos.setForeground(Color.RED);
+        lblSaldo.setFont(new Font("SansSerif", Font.BOLD, 18));
 
+        panelInfo.add(lblIngresos);
+        panelInfo.add(lblGastos);
+        panelInfo.add(lblSaldo);
+        
+        panel.add(panelInfo, BorderLayout.NORTH);
+
+        PanelGrafica panelGrafica = new PanelGrafica();
+       
+        JScrollPane scrollGrafica = new JScrollPane(panelGrafica);
+        scrollGrafica.setBorder(BorderFactory.createTitledBorder("Actividad Reciente"));
+        
+        panel.add(scrollGrafica, BorderLayout.CENTER);
+
+    
         JButton btnActualizar = new JButton("Actualizar Reporte");
-        btnActualizar.addActionListener(e -> actualizarFinanzas());
+        btnActualizar.addActionListener(e -> {
+            actualizarFinanzas();
+            panelGrafica.repaint(); 
+        });
 
-        panel.add(lblIngresos);
-        panel.add(lblGastos);
-        panel.add(lblSaldo);
-        panel.add(btnActualizar);
+        panel.add(btnActualizar, BorderLayout.SOUTH);
 
         return panel;
     }
