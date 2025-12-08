@@ -19,14 +19,14 @@ public class FPrincipal extends JFrame {
 
     private JTabbedPane tabbedPane;
 
-    // ESTADO GLOBAL
+    // Estado global
     private Object usuarioActivo;
     private List<Tiquete> misBoletasCompradas;
 
     private Administrador adminGlobal;
 
     public FPrincipal(Administrador admin) {
-        this.adminGlobal = admin;   // 💥 Admin global accesible desde paneles
+        this.adminGlobal = admin;  
         this.misBoletasCompradas = new ArrayList<>();
 
         setTitle("Boleta Master Kakashi");
@@ -53,44 +53,108 @@ public class FPrincipal extends JFrame {
         reproducirMusica("src/fotos/blue_bird_cantado_por_spaceronin7.wav");
     }
 
-    // ============================================================
-    // GETTER DEL ADMIN → para que PanelAdministrador lo use
-    // ============================================================
     public Administrador getAdministrador() {
         return adminGlobal;
     }
 
-    // ============================================================
-    // MÉTODOS DE ACCESO PARA OTROS PANELES
-    // ============================================================
-
+    /**
+     * Configura la interfaz según el rol del usuario logueado.
+     * ÍNDICES DE PESTAÑAS:
+     * 0: 🏠 Home
+     * 1: 🎫 Mis Boletas
+     * 2: 🛒 Market
+     * 3: ⚙️ Opciones (Panel Organizador / Admin)
+     * 4: 🛡️ Admin (siempre es la última)
+     */
     public void setUsuarioActivo(Object usuario) {
         this.usuarioActivo = usuario;
-
         String rol = usuario.getClass().getSimpleName();
         this.setTitle("Boleta Master - Sesión: " + rol);
 
+        // ----------------------------
+        // 1. HABILITAR TODO PRIMERO
+        // ----------------------------
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            tabbedPane.setEnabledAt(i, true);
+        }
+
+        // ----------------------------
+        // 2. APLICAR RESTRICCIONES
+       
         if (rol.equals("Cliente")) {
-            // Si es cliente, se desactiva panel organizador
-            tabbedPane.setEnabledAt(3, false);
+
+            // Cliente NO ve Opciones (tab 3)
+            if (tabbedPane.getTabCount() > 3)
+                tabbedPane.setEnabledAt(3, false);
+
+            // Cliente NO ve Admin (tab 4)
+            if (tabbedPane.getTabCount() > 4)
+                tabbedPane.setEnabledAt(4, false);
+
+        } else if (rol.equals("Organizador")) {
+
+            // Organizador ve Opciones (tab 3) con su panel
+            if (tabbedPane.getTabCount() > 3) {
+                tabbedPane.setComponentAt(3, new PanelOrganizador());
+                tabbedPane.setTitleAt(3, "⚙️ Organizador");
+            }
+
+            // Organizador NO debe tocar Admin
+            if (tabbedPane.getTabCount() > 4)
+                tabbedPane.setEnabledAt(4, false);
+
+        } else if (rol.equals("Administrador")) {
+
+            // Admin NO compra ni boletas ni usa home
+            tabbedPane.setEnabledAt(0, false); 
+            tabbedPane.setEnabledAt(1, false);
+
+            // Tab 3 → Panel del Admin
+            if (tabbedPane.getTabCount() > 3) {
+                tabbedPane.setComponentAt(3, new PanelAdministrador(this, adminGlobal));
+                tabbedPane.setTitleAt(3, "🛡️ Admin");
+                tabbedPane.setSelectedIndex(3);
+            }
         }
     }
 
-    /** Registrar compras globalmente */
+    public Object getUsuarioActivo() {
+        return this.usuarioActivo;
+    }
+
+    // Registrar compra (llamado desde Marketplace)
     public void registrarCompra(Tiquete t) {
         if (t != null) {
             misBoletasCompradas.add(t);
-        }       
-       
+        }
     }
- // En src/presentacion/FPrincipal.java
+    
+    public void enviarBoletaAlMarket(Tiquete t) {
+        if (t == null) return;
 
- // Getter para que los paneles sepan quién está logueado
- public Object getUsuarioActivo() {
-     return this.usuarioActivo;
- }
+        t.marcarTransferido(); // Se marca como boleta disponible en reventa
 
-    /** Abrir una pestaña con un ticket */
+        // Se quita de Mis Boletas
+        misBoletasCompradas.remove(t);
+
+        // Se agrega al Market
+        PanelMarketplace market = (PanelMarketplace) tabbedPane.getComponentAt(2);
+        market.agregarBoletaReventa(t);
+
+        // Se refresca Mis Boletas
+        PanelMisBoletas mis = (PanelMisBoletas) tabbedPane.getComponentAt(1);
+        mis.actualizarLista();
+
+        JOptionPane.showMessageDialog(this,
+                "La boleta ahora está publicada en el Market.",
+                "Boleta en venta",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+
+    // ============================================================
+    // ABRIR PESTAÑA DE TIQUETE COMPRADO
+    // ============================================================
     public void abrirPestanaTiquete(String tituloEvento, String rutaImagen) {
 
         JPanel panelTiquete = new JPanel(new BorderLayout());
@@ -133,34 +197,24 @@ public class FPrincipal extends JFrame {
     }
 
     // ============================================================
-    // INICIALIZACIÓN DE TABS
+    // TABS PRINCIPALES
     // ============================================================
     private void inicializarComponentes() {
 
         tabbedPane = new JTabbedPane(JTabbedPane.LEFT);
         tabbedPane.setFont(new Font("SansSerif", Font.BOLD, 14));
 
-        // Home
         tabbedPane.addTab("🏠 Home", new PanelHome(this));
-
-        // Mis Boletas
         tabbedPane.addTab("🎫 Mis Boletas", new PanelMisBoletas(this, misBoletasCompradas));
-
-        // Marketplace
         tabbedPane.addTab("🛒 Market", new PanelMarketplace(this));
-
-        // Organizador
         tabbedPane.addTab("⚙️ Opciones", new PanelOrganizador());
-
-        // 💥 Nuevo: Panel Administrador con comunicación total
         tabbedPane.addTab("🛡️ Admin", new PanelAdministrador(this, adminGlobal));
 
         add(tabbedPane, BorderLayout.CENTER);
     }
 
-
     // ============================================================
-    // MÉTODOS DE UTILIDAD
+    // HERRAMIENTAS DE PESTAÑAS
     // ============================================================
     public void abrirPestanaNueva(String titulo, JComponent contenido) {
         tabbedPane.addTab(titulo, contenido);
@@ -172,6 +226,9 @@ public class FPrincipal extends JFrame {
         tabbedPane.setSelectedIndex(0);
     }
 
+    // ============================================================
+    // AUDIO DE FONDO
+    // ============================================================
     private void reproducirMusica(String ruta) {
         try {
             File f = new File(ruta);
@@ -183,8 +240,7 @@ public class FPrincipal extends JFrame {
                 try {
                     FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
                     gain.setValue(-12.0f);
-                } catch (Exception ignore) {
-                }
+                } catch (Exception ignore) {}
 
                 clip.start();
                 clip.loop(Clip.LOOP_CONTINUOUSLY);
@@ -193,4 +249,5 @@ public class FPrincipal extends JFrame {
             System.out.println("Error al reproducir música: " + e.getMessage());
         }
     }
+    
 }
